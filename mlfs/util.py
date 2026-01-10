@@ -291,6 +291,32 @@ def get_pm25(aqicn_url: str, country: str, city: str, street: str, day: datetime
     return aq_today_df
 
 
+def plot_bikes_forecast(city: str, station: str, df: pd.DataFrame, file_path: str, hindcast=False):
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    day = pd.to_datetime(df['date']).dt.date
+    # Plot each column separately in matplotlib
+    ax.plot(day, df['predicted_bikes'], label='Predicted Bikes', color='red', linewidth=2, marker='o', markersize=5, markerfacecolor='blue')
+
+    # Set the labels and title
+    ax.set_xlabel('Date')
+    ax.set_title(f"Bikes Predicted for {city}, {station}")
+    ax.set_ylabel('Bikes')
+    ax.grid()
+
+    if hindcast == True:
+        ax.plot(day, df['bikes'], label='Actual Bikes', color='black', linewidth=2, marker='^', markersize=5, markerfacecolor='grey')
+
+    ax.set_yticks([0, 5, 10, 15, 20, 25, 30])
+
+    # Ensure everything is laid out neatly
+    plt.tight_layout()
+
+    # # Save the figure, overwriting any existing file with the same name
+    plt.savefig(file_path)
+    return plt
+
+
 def plot_air_quality_forecast(city: str, street: str, df: pd.DataFrame, file_path: str, hindcast=False):
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -437,4 +463,34 @@ def backfill_predictions_for_monitoring_berlin(weather_fg, air_quality_df, monit
     hindcast_df = df
     df = df.drop('pm25', axis=1)
     monitor_fg.insert(df, write_options={"wait_for_job": True})
+    return hindcast_df
+
+def backfill_predictions_for_monitoring_bikes(weather_fg, bikes_df, monitor_fg, model):
+    features_df = weather_fg.read()
+    features_df = features_df.sort_values(by=['date'], ascending=True)
+    features_df = features_df.tail(10)
+    
+    # Drop date to midnight to be able to join with the weather
+    bikes_df['date'] = bikes_df['date'].apply(lambda x: pd.Timestamp(x).replace(hour=0, minute=0, second=0, microsecond=0))
+
+    features_df = pd.merge(
+        features_df, 
+        bikes_df[['date', 'id']],
+        on='date'
+    )
+    features_df['id'] = features_df['id'].astype('category')
+    features_df['weather_code'] = features_df['weather_code'].astype('category')
+
+    features_df['predicted_bikes'] = model.predict(
+        features_df[['id', 'weather_code', 'apparent_temperature_mean', 'daylight_duration', 'precipitation_sum', 'wind_speed_10m_max']]
+    )
+
+    df = pd.merge(features_df, bikes_df[['date','bikes','id','country']], on=['date','id'])
+    df['days_before_forecast'] = 1
+    hindcast_df = df
+
+    df = df.drop('bikes', axis=1)
+    df['weather_code'] = df['weather_code'].astype('int32')
+    monitor_fg.insert(df, write_options={"wait_for_job": True})
+
     return hindcast_df
