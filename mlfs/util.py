@@ -475,17 +475,17 @@ def backfill_predictions_for_monitoring_bikes(weather_fg, bikes_df, monitor_fg, 
 
     features_df = pd.merge(
         features_df, 
-        bikes_df[['date', 'id']],
+        bikes_df[['date', 'name']],
         on='date'
     )
-    features_df['id'] = features_df['id'].astype('category')
+    features_df['name'] = features_df['name'].astype('category')
     features_df['weather_code'] = features_df['weather_code'].astype('category')
 
     features_df['predicted_bikes'] = model.predict(
-        features_df[['id', 'weather_code', 'apparent_temperature_mean', 'daylight_duration', 'precipitation_sum', 'wind_speed_10m_max']]
+        features_df[['name', 'weather_code', 'apparent_temperature_mean', 'daylight_duration', 'precipitation_sum', 'wind_speed_10m_max']]
     )
 
-    df = pd.merge(features_df, bikes_df[['date','bikes','id','country']], on=['date','id'])
+    df = pd.merge(features_df, bikes_df[['date','bikes','name','country']], on=['date','name'])
     df['days_before_forecast'] = 1
     hindcast_df = df
 
