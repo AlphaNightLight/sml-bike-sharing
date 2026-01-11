@@ -14,7 +14,7 @@
 <option value="stazione_autocorriere">Stazione autocorriere</option>
 <option value="biblioteca">Biblioteca</option>
 <option value="universita">Università</option>
-<option value="studentato_mayer"></option>
+<option value="studentato_mayer">Studentato Mayer</option>
 <option value="centro_santa_chiara">Centro Santa Chiara</option>
 <option value="stazione_ospedale">Stazione FS Ospedale</option>
 <option value="azienda_sanitaria">Azienda Sanitaria</option>
