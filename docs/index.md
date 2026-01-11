@@ -7,10 +7,10 @@
 ## Station selection
 
 <select id="stationSelect" onchange="updateStation()">
-  <option value="bren_center">top_center</option>
-  <option value="piazza_fiera">noriglio</option>
-  <option value="stazione_fs">sacco</option>
-  <option value="universita">vannetti</option>
+  <option value="top_center">Top Center</option>
+  <option value="noriglio">Noriglio</option>
+  <option value="sacco">Sacco</option>
+  <option value="vannetti">Vannetti</option>
 </select>
 
 ---
